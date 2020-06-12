@@ -1170,9 +1170,17 @@ let rec write_protoc ~fmt ~path:base_path ?(import=[])
       let i = int_of_string sn in
 #endif
       Format.fprintf fmt " [default=%d]" i
+#if OCAML_VERSION >= (4, 11, 0)
+    | Some { pexp_desc = Pexp_constant (Pconst_string (s, _, _)) } ->
+#else
     | Some { pexp_desc = Pexp_constant (Pconst_string (s, _)) } ->
+#endif
       Format.fprintf fmt " [default=\"%s\"]" (escape ~pass_8bit:true s)
+#if OCAML_VERSION >= (4, 11, 0)
+    | Some [%expr Bytes.of_string [%e? { pexp_desc = Pexp_constant (Pconst_string (s, _, _)) }]] ->
+#else
     | Some [%expr Bytes.of_string [%e? { pexp_desc = Pexp_constant (Pconst_string (s, _)) }]] ->
+#endif
       Format.fprintf fmt " [default=\"%s\"]" (escape ~pass_8bit:false s)
     | Some { pexp_desc = Pexp_construct ({ txt = Lident n }, _) }
     | Some { pexp_desc = Pexp_variant (n, _) } ->
